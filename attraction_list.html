@@ -1,0 +1,523 @@
+<html lang="en"><head>
+    <meta charset="utf-8">
+    <title>OpenTripMap API Example</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <style type="text/css">
+        body {
+            margin-top: 10px;
+        }
+
+        img {
+            margin: auto;
+            padding: 10px;
+            display: block;
+            max-width: 250px;
+        }
+
+        @media (min-width: 600px){
+            img{
+                max-width: 450px;
+            }
+        }
+
+        a {
+            cursor: pointer;
+        }
+
+        #next_button {
+            margin-top: 5px;
+            visibility: hidden;
+        }
+    </style>
+
+    <style>
+
+
+/*
+=====
+DEPENDENCES
+=====
+*/
+
+.r-link{
+  display: var(--rLinkDisplay, inline-flex) !important;
+}
+
+.r-link[href]{
+  color: var(--rLinkColor) !important;
+  text-decoration: var(--rLinkTextDecoration, none) !important;
+}
+
+.r-list{
+  padding-left: var(--rListPaddingLeft, 0) !important;
+  margin-top: var(--rListMarginTop, 0) !important;
+  margin-bottom: var(--rListMarginBottom, 0) !important;
+  list-style: var(--rListListStyle, none) !important;
+}
+
+
+/*
+=====
+CORE STYLES
+=====
+*/
+
+.menu{
+  --rLinkColor: var(--menuLinkColor, currentColor);
+}
+
+.menu__link{
+  display: var(--menuLinkDisplay, block);
+}
+
+/* 
+focus state 
+*/
+
+.menu__link:focus{
+  outline: var(--menuLinkOutlineWidth, 2px) solid var(--menuLinkOutlineColor, currentColor);
+  outline-offset: var(--menuLinkOutlineOffset);
+}
+
+/* 
+fading siblings
+*/
+
+.menu:hover .menu__link:not(:hover){
+  --rLinkColor: var(--menuLinkColorUnactive, rgba(22, 22, 22, .35));
+}
+
+/*
+=====
+PRESENTATION STYLES
+=====
+*/
+
+.menu{
+  background-color: var(--menuBackgroundColor, #f0f0f0);
+  box-shadow: var(--menuBoxShadow, 0 1px 3px 0 rgba(0, 0, 0, .12), 0 1px 2px 0 rgba(0, 0, 0, .24));
+}
+
+.menu__list{
+  display: flex;  
+}
+
+.menu__link{
+  padding: var(--menuLinkPadding, 1.5rem 2.5rem);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* 
+=====
+TEXT UNDERLINED
+=====
+*/
+
+.text-underlined{
+  position: relative;
+  overflow: hidden;
+
+  will-change: color;
+  transition: color .25s ease-out;  
+}
+
+.text-underlined::before, 
+.text-underlined::after{
+  content: "";
+  width: 0;
+  height: 3px;
+  background-color: var(--textUnderlinedLineColor, currentColor);
+
+  will-change: width;
+  transition: width .1s ease-out;
+
+  position: absolute;
+  bottom: 0;
+}
+
+.text-underlined::before{
+  left: 50%;
+  transform: translateX(-50%); 
+}
+
+.text-underlined::after{
+  right: 50%;
+  transform: translateX(50%); 
+}
+
+.text-underlined:hover::before, 
+.text-underlined:hover::after{
+  width: 100%;
+  transition-duration: .2s;
+}
+
+/*
+=====
+SETTINGS
+=====
+*/
+
+.page__custom-settings{
+  --menuBackgroundColor: lightcyan;
+  --menuLinkColor: #fff;
+  --menuLinkColorUnactive: #241c69;
+  --menuLinkOutlineOffset: -.5rem; 
+}
+
+/*
+=====
+DEMO
+=====
+*/
+
+
+
+.page{
+  box-sizing: border-box;
+  padding-left: .75rem;
+  padding-right: .75rem;
+  margin: auto;
+  padding-bottom: 10px;
+}
+
+.page__menu:nth-child(n+2){
+  margin-top: 3rem;
+}
+
+
+.substack{
+  border:1px solid #EEE; 
+  background-color: #fff;
+  width: 100%;
+  max-width: 480px;
+  height: 280px;
+  margin: 1rem auto;;
+}
+
+.linktr{
+  display: flex;
+  justify-content: flex-end;
+  padding: 2rem;
+  text-align: center;
+}
+
+.linktr__goal{
+  background-color: rgb(209, 246, 255);
+  color: rgb(8, 49, 112);
+  box-shadow: rgb(8 49 112 / 24%) 0px 2px 8px 0px;
+  border-radius: 2rem;
+  padding: .75rem 1.5rem;
+}
+
+.r-link{
+    --uirLinkDisplay: var(--rLinkDisplay, inline-flex);
+    --uirLinkTextColor: var(--rLinkTextColor);
+    --uirLinkTextDecoration: var(--rLinkTextDecoration, none);
+
+    display: var(--uirLinkDisplay) !important;
+    color: var(--uirLinkTextColor) !important;
+    text-decoration: var(--uirLinkTextDecoration) !important;
+}
+
+</style>
+
+<style>
+        
+        .container1{
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            
+        }
+        .popup{
+            width: 400px;
+            background: darkseagreen;
+            border-radius: 6px;
+            position: absolute;
+            top: 0%;
+            left: 35%
+            transform: translate(92%,92%) scale(0.1);
+            text-align: center;
+            padding: 0 30px 30px;
+            color: #333;
+            visibility: hidden;
+            transition: transform 0.4s,top 0.4s;
+            border: 2px solid green;
+        }
+        .popup img{
+            width: 100px;
+            margin-top: -50px;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,alpha);
+        }
+        .popup button{
+            width: 100%;
+            margin-top: 50px;
+            padding: 10px 0;
+            background: lightcoral;
+            color: #fff;
+            border: 0;
+            outline: none;
+            font-size: 18px;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .open-popup{
+            visibility: visible;
+            top: 40%;
+            transform: translate(60%,40%) scale(1);
+            
+        }
+
+    </style>
+
+    <script type="text/javascript" src="https://opentripmap.io/js/directory.en.js"></script>
+</head>
+<body>
+
+<div class="page">
+  <nav class="page__menu menu">
+    <ul class="menu__list r-list">
+      <li class="menu__group"><a href="home_logged.php" class="menu__link r-link text-underlined">Home</a></li>
+      <li class="menu__group"><a href="itenary.php" class="menu__link r-link text-underlined">Itenary</a></li>
+      <li class="menu__group"><a href="logout.php" class="menu__link r-link text-underlined">Logout</a></li>
+    </ul>
+  </nav>
+</div>
+
+<div class="container">
+    <form id="search_form" class="input-group mb-4 border p-1">
+        <div class="input-group-prepend border-0">
+            <button id="button-search" type="submit" class="btn btn-link ">
+                <i class="fa fa-search"></i>
+            </button>
+        </div>
+        <input id="textbox" type="search" placeholder="Region, city, village, etc. (e.g. Moscow)" aria-describedby="button-search" class="form-control bg-none border-0">
+    </form>
+
+    <div id="info" class="alert alert-primary"></div>
+    <div class="row">
+        <div class="col-12 col-lg-5">
+            <div id="list" class="list-group"></div>
+            <nav class="text-center">
+                <button id="next_button" type="button" class="btn btn-primary">
+                    Next
+                </button>
+            </nav>
+        </div>
+        <div class="col-12 col-lg-7">
+            <div id="poi" class="alert"></div>
+        </div>
+    </div>
+</div>
+
+<div class="container1">
+<div class="popup" id="popup">
+            <img src="https://www.pngitem.com/pimgs/m/508-5084634_image-result-for-tick-icon-circle-hd-png.png">
+                <p id="placeOI"></p>
+                <p id="weather"></p>
+                <p id="recommendation"></p>
+                <button type="button" onclick="closepop()">Continue</button>
+                <button type="button" onclick="cancel()">Cancel</button>
+
+</div>
+</div>
+
+<script>
+    //You should get your API key at https://opentripmap.io
+    const apiKey = "5ae2e3f221c38a28845f05b6e669c56d8c1c7b27fc68cf6d721f3ff5";
+
+    function apiGet(method, query) {
+        return new Promise(function (resolve, reject) {
+            var otmAPI =
+                "https://api.opentripmap.com/0.1/en/places/" +
+                method +
+                "?apikey=" +
+                apiKey;
+            if (query !== undefined) {
+                otmAPI += "&" + query;
+            }
+            fetch(otmAPI)
+                .then(response => response.json())
+                .then(data => resolve(data))
+                .catch(function (err) {
+                    console.log("Fetch Error :-S", err);
+                });
+        });
+    }
+
+    const pageLength = 5;
+
+    let offset = 0;
+    let lon = 0;
+    let lat = 0;
+    let count = 0;
+
+    function onShowPOI(data) {
+        let poi = document.getElementById("poi");
+        poi.innerHTML = "";
+        if (data.preview) {
+            poi.innerHTML += `<img src="${data.preview.source}">`;
+        }
+        poi.innerHTML += data.wikipedia_extracts
+            ? data.wikipedia_extracts.html
+            : data.info
+                ? data.info.descr
+                : "No description";
+        console.log(data.name);
+        poi.innerHTML += `<p><a target="_blank" href="${data.otm}">Show more at OpenTripMap</a></p>`;
+        poi.innerHTML += `<button onclick="check(${lat},${lon},'${data.name}');">ADD</button>`;
+    }
+
+    function createListItem(item) {
+        let a = document.createElement("a");
+        a.className = "list-group-item list-group-item-action";
+        a.setAttribute("data-id", item.xid);
+        a.innerHTML = `<h5 class="list-group-item-heading">${item.name}</h5>
+          <p class="list-group-item-text">${getCategoryName(item.kinds)}</p>`;
+
+        a.addEventListener("click", function () {
+            document.querySelectorAll("#list a").forEach(function (item) {
+                item.classList.remove("active");
+            });
+            this.classList.add("active");
+            let xid = this.getAttribute("data-id");
+            apiGet("xid/" + xid).then(data => onShowPOI(data));
+        });
+        return a;
+    }
+
+    function loadList() {
+        apiGet(
+            "radius",
+            `radius=40000&limit=${pageLength}&offset=${offset}&lon=${lon}&lat=${lat}&rate=2&format=json`
+        ).then(function (data) {
+            let list = document.getElementById("list");
+            list.innerHTML = "";
+            data.forEach(item => list.appendChild(createListItem(item)));
+            let nextBtn = document.getElementById("next_button");
+            if (count < offset + pageLength) {
+                nextBtn.style.visibility = "hidden";
+            } else {
+                nextBtn.style.visibility = "visible";
+                nextBtn.innerText = `Next (${offset + pageLength} of ${count})`;
+            }
+        });
+    }
+
+    function firstLoad() {
+        apiGet(
+            "radius",
+            `radius=1000&limit=${pageLength}&offset=${offset}&lon=${lon}&lat=${lat}&rate=2&format=count`
+        ).then(function (data) {
+            count = data.count;
+            offset = 0;
+            document.getElementById(
+                "info"
+            ).innerHTML += `<p>${count} objects with description in a 1km radius</p>`;
+            loadList();
+        });
+    }
+
+    document
+        .getElementById("search_form")
+        .addEventListener("submit", function (event) {
+            let name = document.getElementById("textbox").value;
+            apiGet("geoname", "name=" + name).then(function (data) {
+                let message = "Name not found";
+                if (data.status == "OK") {
+                    message = data.name + ", " + getCountryName(data.country);
+                    lon = data.lon;
+                    lat = data.lat;
+                    firstLoad();
+                }
+                document.getElementById("info").innerHTML = `<p>${message}</p>`;
+            });
+            event.preventDefault();
+        });
+
+    document
+        .getElementById("next_button")
+        .addEventListener("click", function () {
+            offset += pageLength;
+            loadList();
+        });
+
+
+function check(lat, lon, name){
+        var key = '64fbccc45e13ff367a8b047248877803';
+  fetch('https://api.openweathermap.org/data/2.5/weather?lat='+lat+'&lon='+lon+'&appid=' + key)  
+  .then(function(resp) { return resp.json() }) // Convert data to json
+  .then(function(data) {
+    console.log(data.weather[0].main);
+    console.log(data.weather[0].description);
+    var weather = "Temp:"+(data.main.temp-273)+", Weather:"+data.weather[0].description;
+    var rec = "";
+    if(data.weather[0].description == 'overcast clouds' || data.weather[0].description == 'broken clouds'){
+        rec = "Chance of rain, postpone trip or bring necessary items";
+    }
+    if(data.weather[0].description == 'mist' ){
+        rec = "Its misty here, driving in hilly regions may be a problem";
+    }
+    if(data.weather[0].description == 'smoke' ){
+        rec = "The air is filled with smoke here, if your coming get masks";
+    }
+    if(data.weather[0].description == 'clear sky' ){
+        rec = "Looks like your good to go, Have fun!";
+    }
+    if(data.weather[0].main == 'Rain' ){
+        rec = "It's raining here, we recommend not to visit here as of now";
+    }
+    if(data.weather[0].main == 'Snow' ){
+        rec = "It's snowing here, get woolen clothing!";
+    }
+    document.getElementById("placeOI").innerHTML = name;
+    document.getElementById("weather").innerHTML = weather;
+    document.getElementById("recommendation").innerHTML = rec;
+  })
+  .catch(function() {
+  });
+
+
+
+  let popup= document.getElementById("popup");
+  popup.classList.add("open-popup");
+
+
+
+
+}
+
+function closepop(){
+    popup.classList.remove("open-popup");
+    var ob = {};
+    ob.place = document.getElementById("placeOI").innerHTML;
+    ob.weather = document.getElementById("weather").innerHTML;
+
+    console.log(ob);
+    $.ajax({
+        url:"insIT3.php",
+        method:"post",
+        data:ob,
+        success: function(res){
+            console.log(res)
+        }
+    })
+    window.location.href="itenary.php";
+}
+
+function cancel(){
+    popup.classList.remove("open-popup");
+}
+</script>
+
+</body></html>
+
